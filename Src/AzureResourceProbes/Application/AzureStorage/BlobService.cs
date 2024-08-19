@@ -1,4 +1,6 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace AzureResourceProbes.Application.AzureStorage;
 
@@ -8,6 +10,7 @@ public class BlobService
     private readonly ILogger<BlobService> _logger;
 
     private const string _containerName = "containertest";
+    private const string _queueName = "queuetest";
 
     public BlobService(
         IConfiguration configuration,
@@ -17,9 +20,11 @@ public class BlobService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    #region Blob methods
+
     public async Task CreateContainerAsync()
     {
-        var connectionString = _configuration.GetValue<string>("AzureStorageBlobs:ConnectionString");
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
 
         var blobServiceClient = new BlobServiceClient(connectionString);
 
@@ -28,7 +33,7 @@ public class BlobService
 
     public async Task DeleteContainerAsync()
     {
-        var connectionString = _configuration.GetValue<string>("AzureStorageBlobs:ConnectionString");
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
 
         var blobServiceClient = new BlobServiceClient(connectionString);
 
@@ -47,7 +52,7 @@ public class BlobService
 
         await File.WriteAllTextAsync(localFilePath, "Hello, World!");
 
-        var connectionString = _configuration.GetValue<string>("AzureStorageBlobs:ConnectionString");
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
 
         var blobServiceClient = new BlobServiceClient(connectionString);
 
@@ -74,7 +79,7 @@ public class BlobService
 
         await File.WriteAllTextAsync(localFilePath, "Hello, World!");
 
-        var connectionString = _configuration.GetValue<string>("AzureStorageBlobs:ConnectionString");
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
 
         var blobServiceClient = new BlobServiceClient(connectionString);
 
@@ -90,4 +95,50 @@ public class BlobService
 
         return blob.Value.Content;
     }
+
+    #endregion
+
+    #region Queue methods
+
+    public async Task CreateQueueAsync()
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var queueClient = new QueueClient(connectionString, _queueName);
+
+        await queueClient.CreateAsync();
+    }
+
+    public async Task DeleteQueueAsync()
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var queueClient = new QueueClient(connectionString, _queueName);
+
+        await queueClient.DeleteAsync();
+    }
+
+    public async Task SendQueueMessageAsync(string message)
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var queueClient = new QueueClient(connectionString, _queueName);
+
+        await queueClient.SendMessageAsync(message);
+    }
+
+    public async Task<IEnumerable<string>> GetQueueMessagesAsync()
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var queueClient = new QueueClient(connectionString, _queueName);
+
+        var peekedMessages = await queueClient.PeekMessagesAsync(maxMessages: 10);
+
+        var messages = peekedMessages.Value.Select(x => x.MessageText);
+
+        return messages;
+    }
+
+    #endregion
 }

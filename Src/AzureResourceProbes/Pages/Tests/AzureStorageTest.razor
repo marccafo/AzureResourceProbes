@@ -9,11 +9,11 @@
 
 <MudText Typo="Typo.h5" GutterBottom="true">Blobs</MudText>
 
-<MudButton Disabled="@isCreateProcessing" OnClick="@(() => 
+<MudButton Disabled="@IsProcessing("BlobCreation")" OnClick="@(() =>
     ExecuteAsync(BlobService.CreateContainerAsync,
-    isCreateProcessing,
+    "BlobCreation",
     "Contenedor creado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
-    @if (isCreateProcessing)
+    @if (IsProcessing("BlobCreation"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
         <MudText Class="ms-2">Procesando</MudText>
@@ -24,11 +24,11 @@
     }
 </MudButton>
 
-<MudButton Disabled="@isDeleteProcessing" OnClick="@(() =>
+<MudButton Disabled="@IsProcessing("BlobDeletion")" OnClick="@(() =>
     ExecuteAsync(BlobService.DeleteContainerAsync,
-    isDeleteProcessing,
+    "BlobDeletion",
     "Contenedor eliminado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
-    @if (isDeleteProcessing)
+    @if (IsProcessing("BlobDeletion"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
         <MudText Class="ms-2">Procesando</MudText>
@@ -39,11 +39,11 @@
     }
 </MudButton>
 
-<MudButton Disabled="@isUploadProcessing" OnClick="@(() =>
+<MudButton Disabled="@IsProcessing("BlobUpload")" OnClick="@(() =>
     ExecuteAsync(BlobService.UploadBlogAsync,
-    isUploadProcessing,
+    "BlobUpload",
     "Blob subido correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
-    @if (isUploadProcessing)
+    @if (IsProcessing("BlobUpload"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
         <MudText Class="ms-2">Procesando</MudText>
@@ -54,8 +54,8 @@
     }
 </MudButton>
 
-<MudButton Disabled="@isDownloadProcessing" OnClick="DownloadBlobAsync" Variant="Variant.Filled" Color="Color.Primary">
-    @if (isDownloadProcessing)
+<MudButton Disabled="@IsProcessing("BlobDownload")" OnClick="DownloadBlobAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("BlobDownload"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
         <MudText Class="ms-2">Procesando</MudText>
@@ -68,43 +68,88 @@
 
 <MudDivider />
 
-<MudText Typo="Typo.h5" GutterBottom="true">Files</MudText>
-<MudText Typo="Typo.h5" GutterBottom="true">Queues</MudText>
-<MudText Typo="Typo.h5" GutterBottom="true">Tables</MudText>
+<MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Files</MudText>
+<MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Queues</MudText>
+
+<MudButton Disabled="@IsProcessing("QueueCreation")" OnClick="@(() =>
+    ExecuteAsync(BlobService.CreateQueueAsync,
+    "QueueCreation",
+    "Cola creada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("QueueCreation"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Crear Azure Blob Queue</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@IsProcessing("QueueDeletion")" OnClick="@(() =>
+    ExecuteAsync(BlobService.DeleteQueueAsync,
+    "QueueDeletion",
+    "Cola eliminada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("QueueDeletion"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Eliminar Azure Blob Queue</MudText>
+    }
+</MudButton>
+
+<MudText Class="mt-2" Typo="Typo.body1">Enviar un mensaje a la cola:</MudText>
+
+<MudTextField @bind-Value="queueMessage" Label="Mensaje de cola" Variant="Variant.Outlined"></MudTextField>
+
+<MudButton Disabled="@IsProcessing("QueueMessage")" OnClick="@(() =>
+    ExecuteAsync(() => BlobService.SendQueueMessageAsync(queueMessage),
+    "QueueMessage",
+    "Mensaje enviado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("QueueMessage"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Enviar mensaje</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@IsProcessing("QueueGetMessages")" OnClick="GetQueueMessagesAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("QueueGetMessages"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Leer mensajes</MudText>
+    }
+</MudButton>
+
+<MudText Class="mt-2" Typo="Typo.body1">Listado de mensajes:</MudText>
+
+@foreach (var message in queueMessages)
+{
+    <MudText Class="mt-1" Typo="Typo.body2">@message</MudText>
+    <MudDivider />
+}
+
+<MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Tables</MudText>
 
 @code {
-    bool isCreateProcessing = false;
-    bool isDeleteProcessing = false;
-    bool isUploadProcessing = false;
-    bool isDownloadProcessing = false;
-
-    private async Task ExecuteAsync(Func<Task> blobAction, bool isProcessing, string successMessage)
-    {
-        isProcessing = true;
-
-        StateHasChanged();
-
-        try
-        {
-            await blobAction();
-
-            Snackbar.Add(successMessage, Severity.Info);
-        }
-        catch (Exception exception)
-        {
-            Snackbar.Add($"Error: {exception.Message}", Severity.Error);
-        }
-
-        isProcessing = false;
-
-        StateHasChanged();
-    }
+    Dictionary<string, bool> processingStates = new();
+    string queueMessage = string.Empty;
+    IEnumerable<string> queueMessages = Enumerable.Empty<string>();
 
     private async Task DownloadBlobAsync()
     {
-        isDownloadProcessing = true;
-
-        StateHasChanged();
+        SetProcessingState("BlobDownload", true);
 
         try
         {
@@ -126,8 +171,53 @@
             Snackbar.Add($"Error: {exception.Message}", Severity.Error);
         }
 
-        isDownloadProcessing = false;
+        SetProcessingState("BlobDownload", false);
+    }
 
+    private async Task ExecuteAsync(Func<Task> blobAction, string actionKey, string successMessage)
+    {
+        SetProcessingState(actionKey, true);
+
+        try
+        {
+            await blobAction();
+
+            Snackbar.Add(successMessage, Severity.Info);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Error: {exception.Message}", Severity.Error);
+        }
+
+        SetProcessingState(actionKey, false);
+    }
+
+    private async Task GetQueueMessagesAsync()
+    {
+        SetProcessingState("QueueGetMessages", true);
+
+        try
+        {
+            queueMessages = await BlobService.GetQueueMessagesAsync();
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Error: {exception.Message}", Severity.Error);
+        }
+
+        SetProcessingState("QueueGetMessages", false);
+    }
+
+
+    private bool IsProcessing(string actionKey)
+    {
+        return processingStates.ContainsKey(actionKey) && processingStates[actionKey];
+    }
+
+    private void SetProcessingState(string actionKey, bool isProcessing)
+    {
+        processingStates[actionKey] = isProcessing;
+        
         StateHasChanged();
     }
 }
