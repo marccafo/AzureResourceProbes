@@ -1,0 +1,153 @@
+﻿@page "/logs"
+@inject ILogger<LogsTest> Logger
+
+<PageTitle>Logs Test</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Logs Test</MudText>
+
+<MudButton Disabled="@isLogTraceProcessing" OnClick="LogTraceAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isLogTraceProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Log Trace</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isLogInformationProcessing" OnClick="LogInformationAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isLogInformationProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Log Information</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isLogWarningProcessing" OnClick="LogWarningAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isLogWarningProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Log Warning</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isLogErrorProcessing" OnClick="LogErrorAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isLogErrorProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Log Error</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isLogCriticalProcessing" OnClick="LogCriticalAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isLogCriticalProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Log Critical</MudText>
+    }
+</MudButton>
+
+@code {
+    bool isLogTraceProcessing = false;
+    bool isLogInformationProcessing = false;
+    bool isLogWarningProcessing = false;
+    bool isLogErrorProcessing = false;
+    bool isLogCriticalProcessing = false;
+
+    private async Task LogTraceAsync()
+    {
+        isLogTraceProcessing = true;
+
+        StateHasChanged();
+
+        await Task.Delay(1000);
+
+        Logger.LogTrace("LogTrace - Registro de prueba");
+
+        isLogTraceProcessing = false;
+
+        StateHasChanged();
+    }
+
+    private async Task LogInformationAsync()
+    {
+        isLogInformationProcessing = true;
+
+        StateHasChanged();
+
+        await Task.Delay(1000);
+
+        Logger.LogInformation("LogInformation - Registro de prueba");
+
+        isLogInformationProcessing = false;
+
+        StateHasChanged();
+    }
+
+    private async Task LogWarningAsync()
+    {
+        isLogWarningProcessing = true;
+
+        StateHasChanged();
+
+        await Task.Delay(1000);
+
+        Logger.LogWarning("LogWarning - Registro de prueba");
+
+        isLogWarningProcessing = false;
+
+        StateHasChanged();
+    }
+
+    private async Task LogErrorAsync()
+    {
+        isLogErrorProcessing = true;
+
+        StateHasChanged();
+
+        await Task.Delay(1000);
+
+        var exception = new Exception("Exception de prueba");
+
+        Logger.LogError(exception, "LogError - Registro de prueba");
+
+        isLogErrorProcessing = false;
+
+        StateHasChanged();
+    }
+
+    private async Task LogCriticalAsync()
+    {
+        isLogCriticalProcessing = true;
+
+        StateHasChanged();
+
+        await Task.Delay(1000);
+
+        var exception = new Exception("Exception crítica de prueba");
+
+        Logger.LogCritical(exception, "LogCritical - Registro de prueba");
+
+        isLogCriticalProcessing = false;
+
+        StateHasChanged();
+    }
+}
