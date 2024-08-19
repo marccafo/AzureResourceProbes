@@ -1,0 +1,133 @@
+﻿@page "/azure-storage"
+@inject BlobService BlobService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Azure Storage Test</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Azure Storage Test</MudText>
+
+<MudText Typo="Typo.h5" GutterBottom="true">Blobs</MudText>
+
+<MudButton Disabled="@isCreateProcessing" OnClick="@(() => 
+    ExecuteAsync(BlobService.CreateContainerAsync,
+    isCreateProcessing,
+    "Contenedor creado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isCreateProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Crear Azure Blob Container</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isDeleteProcessing" OnClick="@(() =>
+    ExecuteAsync(BlobService.DeleteContainerAsync,
+    isDeleteProcessing,
+    "Contenedor eliminado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isDeleteProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Eliminar Azure Blob Container</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isUploadProcessing" OnClick="@(() =>
+    ExecuteAsync(BlobService.UploadBlogAsync,
+    isUploadProcessing,
+    "Blob subido correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isUploadProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Subir Blob</MudText>
+    }
+</MudButton>
+
+<MudButton Disabled="@isDownloadProcessing" OnClick="DownloadBlobAsync" Variant="Variant.Filled" Color="Color.Primary">
+    @if (isDownloadProcessing)
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Descargar Blob</MudText>
+    }
+</MudButton>
+
+<MudDivider />
+
+<MudText Typo="Typo.h5" GutterBottom="true">Files</MudText>
+<MudText Typo="Typo.h5" GutterBottom="true">Queues</MudText>
+<MudText Typo="Typo.h5" GutterBottom="true">Tables</MudText>
+
+@code {
+    bool isCreateProcessing = false;
+    bool isDeleteProcessing = false;
+    bool isUploadProcessing = false;
+    bool isDownloadProcessing = false;
+
+    private async Task ExecuteAsync(Func<Task> blobAction, bool isProcessing, string successMessage)
+    {
+        isProcessing = true;
+
+        StateHasChanged();
+
+        try
+        {
+            await blobAction();
+
+            Snackbar.Add(successMessage, Severity.Info);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Error: {exception.Message}", Severity.Error);
+        }
+
+        isProcessing = false;
+
+        StateHasChanged();
+    }
+
+    private async Task DownloadBlobAsync()
+    {
+        isDownloadProcessing = true;
+
+        StateHasChanged();
+
+        try
+        {
+            var stream = await BlobService.DownloadBlobAsync();
+
+            var fileName = $"test.txt";
+
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var byteArray = memoryStream.ToArray();
+
+            var base64 = Convert.ToBase64String(byteArray);
+            var url = $"data:application/octet-stream;base64,{base64}";
+
+            await JSRuntime.InvokeVoidAsync("downloadFileFromUrl", url, fileName);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Error: {exception.Message}", Severity.Error);
+        }
+
+        isDownloadProcessing = false;
+
+        StateHasChanged();
+    }
+}
