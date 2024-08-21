@@ -1,4 +1,6 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Data.Tables;
+using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 
@@ -11,6 +13,7 @@ public class BlobService
 
     private const string _containerName = "containertest";
     private const string _queueName = "queuetest";
+    private const string _tableName = "tabletest";
 
     public BlobService(
         IConfiguration configuration,
@@ -138,6 +141,65 @@ public class BlobService
         var messages = peekedMessages.Value.Select(x => x.MessageText);
 
         return messages;
+    }
+
+    #endregion
+
+    #region Table methods
+
+    public async Task CreateTableAsync()
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var tableServiceClient = new TableServiceClient(connectionString);
+
+        var tableClient = tableServiceClient.GetTableClient(
+            tableName: _tableName
+        );
+
+        await tableClient.CreateIfNotExistsAsync();
+    }
+
+    public async Task DeleteTableAsync()
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var tableServiceClient = new TableServiceClient(connectionString);
+
+        var tableClient = tableServiceClient.GetTableClient(
+            tableName: _tableName
+        );
+
+        await tableClient.DeleteAsync();
+    }
+
+    public async Task AddTableEntryAsync(string value)
+    {
+        var connectionString = _configuration.GetValue<string>("AzureStorage:ConnectionString");
+
+        var tableServiceClient = new TableServiceClient(connectionString);
+
+        var tableClient = tableServiceClient.GetTableClient(
+            tableName: _tableName
+        );
+
+        var item = new Item()
+        {
+            CustomProperty = value,
+            PartitionKey = "default-partition",
+            RowKey = Random.Shared.Next().ToString(),
+        };
+
+        await tableClient.AddEntityAsync(item);
+    }
+
+    public class Item : ITableEntity
+    {
+        public string CustomProperty { get; set; } = null!;
+        public string PartitionKey { get; set; } = null!;
+        public string RowKey { get; set; } = null!;
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 
     #endregion

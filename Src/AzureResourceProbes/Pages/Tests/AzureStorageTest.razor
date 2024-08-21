@@ -9,7 +9,7 @@
 
 <MudText Typo="Typo.h5" GutterBottom="true">Blobs</MudText>
 
-<MudButton Disabled="@IsProcessing("BlobCreation")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("BlobCreation")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(BlobService.CreateContainerAsync,
     "BlobCreation",
     "Contenedor creado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -24,7 +24,7 @@
     }
 </MudButton>
 
-<MudButton Disabled="@IsProcessing("BlobDeletion")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("BlobDeletion")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(BlobService.DeleteContainerAsync,
     "BlobDeletion",
     "Contenedor eliminado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -39,7 +39,7 @@
     }
 </MudButton>
 
-<MudButton Disabled="@IsProcessing("BlobUpload")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("BlobUpload")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(BlobService.UploadBlogAsync,
     "BlobUpload",
     "Blob subido correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -54,7 +54,7 @@
     }
 </MudButton>
 
-<MudButton Disabled="@IsProcessing("BlobDownload")" OnClick="DownloadBlobAsync" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton Class="mb-2" Disabled="@IsProcessing("BlobDownload")" FullWidth="true" OnClick="DownloadBlobAsync" Variant="Variant.Filled" Color="Color.Primary">
     @if (IsProcessing("BlobDownload"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -68,10 +68,9 @@
 
 <MudDivider />
 
-<MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Files</MudText>
 <MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Queues</MudText>
 
-<MudButton Disabled="@IsProcessing("QueueCreation")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("QueueCreation")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(BlobService.CreateQueueAsync,
     "QueueCreation",
     "Cola creada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -82,11 +81,11 @@
     }
     else
     {
-        <MudText>Crear Azure Blob Queue</MudText>
+        <MudText>Crear Azure Queue</MudText>
     }
 </MudButton>
 
-<MudButton Disabled="@IsProcessing("QueueDeletion")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("QueueDeletion")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(BlobService.DeleteQueueAsync,
     "QueueDeletion",
     "Cola eliminada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -97,15 +96,15 @@
     }
     else
     {
-        <MudText>Eliminar Azure Blob Queue</MudText>
+        <MudText>Eliminar Azure Queue</MudText>
     }
 </MudButton>
 
 <MudText Class="mt-2" Typo="Typo.body1">Enviar un mensaje a la cola:</MudText>
 
-<MudTextField @bind-Value="queueMessage" Label="Mensaje de cola" Variant="Variant.Outlined"></MudTextField>
+<MudTextField @bind-Value="queueMessage" Class="mb-2" Label="Mensaje de cola" Variant="Variant.Outlined"></MudTextField>
 
-<MudButton Disabled="@IsProcessing("QueueMessage")" OnClick="@(() =>
+<MudButton Class="mb-2" Disabled="@IsProcessing("QueueMessage")" FullWidth="true" OnClick="@(() =>
     ExecuteAsync(() => BlobService.SendQueueMessageAsync(queueMessage),
     "QueueMessage",
     "Mensaje enviado correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
@@ -120,7 +119,7 @@
     }
 </MudButton>
 
-<MudButton Disabled="@IsProcessing("QueueGetMessages")" OnClick="GetQueueMessagesAsync" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton Class="mb-2" Disabled="@IsProcessing("QueueGetMessages")" FullWidth="true" OnClick="GetQueueMessagesAsync" Variant="Variant.Filled" Color="Color.Primary">
     @if (IsProcessing("QueueGetMessages"))
     {
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -132,20 +131,75 @@
     }
 </MudButton>
 
-<MudText Class="mt-2" Typo="Typo.body1">Listado de mensajes:</MudText>
+<MudText Typo="Typo.body1">Listado de mensajes:</MudText>
 
-@foreach (var message in queueMessages)
-{
-    <MudText Class="mt-1" Typo="Typo.body2">@message</MudText>
-    <MudDivider />
-}
+<MudSimpleTable Striped="true" Style="overflow-x: auto;">
+    <tbody>
+        @foreach (var message in queueMessages)
+        {
+            <tr>
+                <td>@message</td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
 
 <MudText Class="mt-4" Typo="Typo.h5" GutterBottom="true">Tables</MudText>
+
+<MudButton Class="mb-2" Disabled="@IsProcessing("TableCreation")" FullWidth="true" OnClick="@(() =>
+    ExecuteAsync(BlobService.CreateTableAsync,
+    "TableCreation",
+    "Cola creada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("TableCreation"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Crear Azure Table</MudText>
+    }
+</MudButton>
+
+<MudButton Class="mb-2" Disabled="@IsProcessing("TableDeletion")" FullWidth="true" OnClick="@(() =>
+    ExecuteAsync(BlobService.DeleteTableAsync,
+    "TableDeletion",
+    "Tabla eliminada correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("TableDeletion"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Eliminar Azure Table</MudText>
+    }
+</MudButton>
+
+<MudText Class="mt-2" Typo="Typo.body1">Añadir registro en la tabla:</MudText>
+
+<MudTextField @bind-Value="tableEntry" Label="Valor" Variant="Variant.Outlined"></MudTextField>
+
+<MudButton Class="mb-2" Disabled="@IsProcessing("TableEntry")" FullWidth="true" OnClick="@(() =>
+    ExecuteAsync(() => BlobService.AddTableEntryAsync(tableEntry),
+    "TableEntry",
+    "Entrada añadida correctamente"))" Variant="Variant.Filled" Color="Color.Primary">
+    @if (IsProcessing("TableEntry"))
+    {
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+        <MudText Class="ms-2">Procesando</MudText>
+    }
+    else
+    {
+        <MudText>Añadir entrada</MudText>
+    }
+</MudButton>
 
 @code {
     Dictionary<string, bool> processingStates = new();
     string queueMessage = string.Empty;
     IEnumerable<string> queueMessages = Enumerable.Empty<string>();
+    string tableEntry = string.Empty;
 
     private async Task DownloadBlobAsync()
     {
@@ -207,7 +261,6 @@
 
         SetProcessingState("QueueGetMessages", false);
     }
-
 
     private bool IsProcessing(string actionKey)
     {
