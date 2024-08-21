@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'  # Cambiado a Windows
 
 variables:
   buildConfiguration: 'Release'
@@ -12,7 +12,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.x.x' # Asegúrate de tener la versión correcta de .NET 8
+    version: '8.x.x'  # Asegúrate de tener la versión correcta de .NET 8
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
@@ -40,7 +40,9 @@ steps:
 
 - task: AzureWebApp@1
   inputs:
-    azureSubscription: '$(azureSubscription)' # Referencia a la variable de conexión de servicio
+    azureSubscription: '$(azureSubscription)'  # Referencia a la variable de conexión de servicio
     appType: 'webApp'
-    appName: '$(appName)' # Referencia a la variable del nombre del App Service
+    appName: '$(appName)'  # Referencia a la variable del nombre del App Service
     package: '$(packagePath)'
+    runtimeStack: 'DOTNET|8.0'  # Define el stack de .NET 8.0
+    enableCustomDeployment: true
