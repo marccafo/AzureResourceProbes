@@ -12,7 +12,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.x.x'  # Asegúrate de tener la versión correcta de .NET 8
+    version: '8.x'  # Asegúrate de tener la versión correcta de .NET 8
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
