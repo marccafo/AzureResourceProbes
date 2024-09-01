@@ -7,11 +7,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{E3F58F57-7E60-4E9B-9257-C289586C40EC}"
 	ProjectSection(SolutionItems) = preProject
 		Config\azure-pipeline.yml = Config\azure-pipeline.yml
+		Config\azure-pipelines-api.yml = Config\azure-pipelines-api.yml
+		Config\azure-pipelines-function.yml = Config\azure-pipelines-function.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureResourceProbes.API", "Src\AzureResourceProbes.API\AzureResourceProbes.API.csproj", "{8F69589C-E3FB-4386-B6D7-720FF53B4965}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureResourceProbes.Function", "Src\AzureResourceProbes.Function\AzureResourceProbes.Function.csproj", "{4F25107B-B431-4ED9-810B-BE287CD66692}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureResourceProbes.Function", "Src\AzureResourceProbes.Function\AzureResourceProbes.Function.csproj", "{4F25107B-B431-4ED9-810B-BE287CD66692}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

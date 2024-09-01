@@ -1,0 +1,47 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  packagePath: '$(Build.ArtifactStagingDirectory)/publish'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/AzureResourceProbes.Function.csproj'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/AzureResourceProbes.Function.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: '**/AzureResourceProbes.Function.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(packagePath)'
+    artifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: AzureFunctionApp@1
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appName: '$(appName)'
+    package: '$(packagePath)'
+    runtimeStack: 'DOTNET|8.0'
+    enableCustomDeployment: true
