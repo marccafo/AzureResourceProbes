@@ -2,6 +2,7 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
+using System.Text;
 
 namespace AzureResourceProbes.API.Application.AzureStorage;
 
@@ -126,7 +127,10 @@ public class BlobService
 
         var queueClient = new QueueClient(connectionString, _queueName);
 
-        await queueClient.SendMessageAsync(message);
+        var plainTextBytes = Encoding.UTF8.GetBytes(message);
+        var base64string = Convert.ToBase64String(plainTextBytes);
+
+        await queueClient.SendMessageAsync(base64string);
     }
 
     public async Task<IEnumerable<string>> GetQueueMessagesAsync()
@@ -137,7 +141,15 @@ public class BlobService
 
         var peekedMessages = await queueClient.PeekMessagesAsync(maxMessages: 10);
 
-        var messages = peekedMessages.Value.Select(x => x.MessageText);
+        var messages = peekedMessages.Value
+            .Select(x =>
+            {
+                var base64EncodedBytes = Convert.FromBase64String(x.MessageText);
+
+                return Encoding.UTF8.GetString(base64EncodedBytes);
+            })
+            .Where(x => x != null)
+            .ToList();
 
         return messages;
     }

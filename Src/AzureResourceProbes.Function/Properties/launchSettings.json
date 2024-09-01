@@ -2,7 +2,7 @@
   "profiles": {
     "AzureResourceProbes.Function": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7155",
+      "commandLineArgs": "--port 7216",
       "launchBrowser": false
     }
   }
