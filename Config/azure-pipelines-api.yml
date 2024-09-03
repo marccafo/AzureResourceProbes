@@ -9,7 +9,7 @@ variables:
   azureSubscription: 'serviceconnection-arp'
   appServiceName: 'app-arp-linux-westeu-001'
   resourceGroupName: 'rg-arp-westeu-001'
-  projectFolder: 'AzureResourceProbes.API'
+  projectName: 'AzureResourceProbes.API'
   vmImageName: 'ubuntu-latest'
 
 steps:
@@ -22,18 +22,18 @@ steps:
   - task: DotNetCoreCLI@2
     inputs:
       command: 'restore'
-      projects: '$(projectFolder)/**/*.csproj'
+      projects: '**/$(projectName).csproj'
 
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
-      projects: '$(projectFolder)/**/*.csproj'
+      projects: '**/$(projectName).csproj'
       arguments: '--configuration $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
     inputs:
       command: 'publish'
-      projects: '$(projectFolder)/**/*.csproj'
+      projects: '**/$(projectName).csproj'
       arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
