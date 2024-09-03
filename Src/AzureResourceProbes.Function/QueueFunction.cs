@@ -20,7 +20,7 @@ namespace AzureResourceProbes.Function
         }
 
         [Function(nameof(QueueFunction))]
-        public async Task Run([QueueTrigger("queuetest", Connection = "AZURESTORAGE_CONNECTION_STRING")] QueueMessage message)
+        public async Task Run([QueueTrigger("queuetest", Connection = "AzureStorage:ConnectionString")] QueueMessage message)
         {
             _logger.LogInformation($"Mensaje recibido de la cola: {message.MessageText}");
 
