@@ -2,27 +2,32 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest'  # Usamos un entorno de Linux para la compilación
 
 variables:
   buildConfiguration: 'Release'
   packagePath: '$(Build.ArtifactStagingDirectory)/publish'
   zipFilePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+  azureSubscription: 'serviceconnection-arp'  # Ajusta esto al nombre de tu suscripción en Azure
+  appName: 'app-arp-linux-westeu-001'  # Ajusta esto al nombre de tu App Service
 
 steps:
+# Configuración de .NET SDK
 - task: UseDotNet@2
   displayName: 'Instalar .NET SDK'
   inputs:
     packageType: 'sdk'
-    version: '8.x'
+    version: '8.0.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
+# Restaurar paquetes NuGet
 - task: DotNetCoreCLI@2
   displayName: 'Restaurar paquetes NuGet'
   inputs:
     command: 'restore'
     projects: '**/AzureResourceProbes.API.csproj'
 
+# Compilar el proyecto
 - task: DotNetCoreCLI@2
   displayName: 'Compilar el proyecto'
   inputs:
@@ -30,6 +35,7 @@ steps:
     projects: '**/AzureResourceProbes.API.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
+# Publicar la aplicación
 - task: DotNetCoreCLI@2
   displayName: 'Publicar la aplicación'
   inputs:
@@ -59,7 +65,7 @@ steps:
 - task: AzureWebApp@1
   displayName: 'Desplegar aplicación en Azure App Service'
   inputs:
-    azureSubscription: '$(azureSubscription)'
+    azureSubscription: '$(azureSubscription)'  # Referencia al nombre de la suscripción en Azure DevOps
     appType: 'webAppLinux'
     appName: '$(appName)'
     package: '$(zipFilePath)'
