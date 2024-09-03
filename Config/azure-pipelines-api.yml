@@ -1,86 +1,82 @@
 trigger:
 - main
 
-pool:
-  vmImage: 'ubuntu-latest'  # Usamos un entorno de Linux para la compilación
-
 variables:
-  buildConfiguration: 'Release'
-  packagePath: '$(Build.ArtifactStagingDirectory)/publish'
-  zipFilePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-  azureSubscription: 'serviceconnection-arp'  # Ajusta esto al nombre de tu suscripción en Azure
-  appName: 'app-arp-linux-westeu-001'  # Ajusta esto al nombre de tu App Service
-  resourceGroup: 'rg-arp-westeu-001'
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'  # Usamos un agente Ubuntu para un entorno Linux
 
-steps:
-# Configuración de .NET SDK
-- task: UseDotNet@2
-  displayName: 'Instalar .NET SDK'
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.x'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+  # Working Directory
+  workingDirectory: '$(System.DefaultWorkingDirectory)/Src/AzureResourceProbes.API'
 
-# Restaurar paquetes NuGet
-- task: DotNetCoreCLI@2
-  displayName: 'Restaurar paquetes NuGet'
-  inputs:
-    command: 'restore'
-    projects: '**/AzureResourceProbes.API.csproj'
+stages:
+- stage: Build
+  displayName: Build stage
 
-# Compilar el proyecto
-- task: DotNetCoreCLI@2
-  displayName: 'Compilar el proyecto'
-  inputs:
-    command: 'build'
-    projects: '**/AzureResourceProbes.API.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
 
-# Publicar la aplicación
-- task: DotNetCoreCLI@2
-  displayName: 'Publicar la aplicación'
-  inputs:
-    command: 'publish'
-    projects: '**/AzureResourceProbes.API.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'restore'
+        projects: |
+          $(workingDirectory)/*.csproj
 
-# Crear un archivo .zip a partir de la publicación
-- task: ArchiveFiles@2
-  displayName: 'Crear archivo ZIP de la publicación'
-  inputs:
-    rootFolderOrFile: '$(packagePath)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(zipFilePath)'
-    replaceExistingArchive: true
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: 'build'
+        projects: |
+          $(workingDirectory)/*.csproj
+        arguments: --configuration Release
 
-# Publicar artefactos de compilación
-- task: PublishBuildArtifacts@1
-  displayName: 'Publicar artefactos de compilación'
-  inputs:
-    pathToPublish: '$(zipFilePath)'
-    artifactName: 'drop'
-    publishLocation: 'Container'
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: 'publish'
+        projects: |
+          $(workingDirectory)/*.csproj
+        arguments: '--configuration Release --output $(System.DefaultWorkingDirectory)/publish_output'
 
-# Desplegar a Azure App Service
-- task: AzureWebApp@1
-  displayName: 'Desplegar aplicación en Azure App Service'
-  inputs:
-    azureSubscription: '$(azureSubscription)'  # Referencia al nombre de la suscripción en Azure DevOps
-    appType: 'webAppLinux'
-    appName: '$(appName)'
-    package: '$(zipFilePath)'
-    runtimeStack: 'DOTNET|8.0'
-    enableCustomDeployment: true
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
 
-# Paso de diagnóstico: Verificar conexión de servicio
-- script: |
-    echo "Verificando conexión de servicio..."
-    az account show
-  displayName: 'Verificar conexión de servicio'
+    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      artifact: drop
 
-# Paso de diagnóstico: Verificar acceso a la aplicación web
-- script: |
-    echo "Verificando acceso a la aplicación web..."
-    az webapp show --name $(appName) --resource-group $(resourceGroup)
-  displayName: 'Verificar acceso a la aplicación web'
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'production'
+    pool:
+      vmImage: $(vmImageName)
+
+    strategy:
+      runOnce:
+        deploy:
+
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Azure Web App Deploy'
+            inputs:
+              azureSubscription: '$(azureSubscription)'  # ID de la suscripción
+              appType: 'webAppLinux'
+              appName: '$(appName)'  # Nombre del App Service
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'  # Paquete ZIP generado
+              runtimeStack: 'DOTNET|8.0'  # Runtime Stack para .NET 8
+              enableCustomDeployment: true
