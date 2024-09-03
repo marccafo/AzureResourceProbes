@@ -4,7 +4,7 @@ trigger:
 variables:
   vmImageName: 'windows-latest'
   azureSubscription: 'serviceconnection-arp'
-  appServiceName: 'app-arp-linux-westeu-001'
+  appServiceName: 'func-arp-linux-westeu-001'
   resourceGroupName: 'rg-arp-westeu-001'
   workingDirectory: '$(System.DefaultWorkingDirectory)/Src/AzureResourceProbes.Function'
 
