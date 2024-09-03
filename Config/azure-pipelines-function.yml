@@ -17,27 +17,27 @@ steps:
   displayName: 'Instalar .NET SDK 8.x'
   inputs:
     packageType: 'sdk'
-    version: '8.x.x' # Asegúrate de usar la versión del SDK de .NET que necesitas
+    version: '8.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
   displayName: 'Restaurar paquetes NuGet'
   inputs:
     command: 'restore'
-    projects: '$(projectFolder)/**/*.csproj'
+    projects: '**/$(projectName).csproj'
 
 - task: DotNetCoreCLI@2
   displayName: 'Compilar la aplicación'
   inputs:
     command: 'build'
-    projects: '$(projectFolder)/**/*.csproj'
+    projects: '**/$(projectName).csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: 'Publicar la aplicación'
   inputs:
     command: 'publish'
-    projects: '$(projectFolder)/**/*.csproj'
+    projects: '**/$(projectName).csproj'
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
