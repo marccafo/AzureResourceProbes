@@ -10,6 +10,7 @@ variables:
   zipFilePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
   azureSubscription: 'serviceconnection-arp'  # Ajusta esto al nombre de tu suscripción en Azure
   appName: 'app-arp-linux-westeu-001'  # Ajusta esto al nombre de tu App Service
+  resourceGroup: 'rg-arp-westeu-001'
 
 steps:
 # Configuración de .NET SDK
@@ -71,3 +72,15 @@ steps:
     package: '$(zipFilePath)'
     runtimeStack: 'DOTNET|8.0'
     enableCustomDeployment: true
+
+# Paso de diagnóstico: Verificar conexión de servicio
+- script: |
+    echo "Verificando conexión de servicio..."
+    az account show
+  displayName: 'Verificar conexión de servicio'
+
+# Paso de diagnóstico: Verificar acceso a la aplicación web
+- script: |
+    echo "Verificando acceso a la aplicación web..."
+    az webapp show --name $(appName) --resource-group $(resourceGroup)
+  displayName: 'Verificar acceso a la aplicación web'
