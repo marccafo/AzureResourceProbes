@@ -1,82 +1,51 @@
 trigger:
-- main
+- main # Rama principal de tu repositorio
+
+pool:
+  vmImage: 'ubuntu-latest'
 
 variables:
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'  # Usamos un agente Ubuntu para un entorno Linux
+  buildConfiguration: 'Release'
+  azureSubscription: 'serviceconnection-arp'
+  appServiceName: 'app-arp-linux-westeu-001'
+  resourceGroupName: 'rg-arp-westeu-001'
+  projectFolder: 'AzureResourceProbes.API'
+  vmImageName: 'ubuntu-latest'
 
-  # Working Directory
-  workingDirectory: '$(System.DefaultWorkingDirectory)/Src/AzureResourceProbes.API'
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '8.x.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-stages:
-- stage: Build
-  displayName: Build stage
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'restore'
+      projects: '$(projectFolder)/**/*.csproj'
 
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: $(vmImageName)
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: '$(projectFolder)/**/*.csproj'
+      arguments: '--configuration $(buildConfiguration)'
 
-    steps:
-    - task: DotNetCoreCLI@2
-      displayName: Restore
-      inputs:
-        command: 'restore'
-        projects: |
-          $(workingDirectory)/*.csproj
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      projects: '$(projectFolder)/**/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
-    - task: DotNetCoreCLI@2
-      displayName: Build
-      inputs:
-        command: 'build'
-        projects: |
-          $(workingDirectory)/*.csproj
-        arguments: --configuration Release
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
 
-    - task: DotNetCoreCLI@2
-      displayName: Publish
-      inputs:
-        command: 'publish'
-        projects: |
-          $(workingDirectory)/*.csproj
-        arguments: '--configuration Release --output $(System.DefaultWorkingDirectory)/publish_output'
-
-    - task: ArchiveFiles@2
-      displayName: 'Archive files'
-      inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
-        includeRootFolder: false
-        archiveType: zip
-        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-        replaceExistingArchive: true
-
-    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      artifact: drop
-
-- stage: Deploy
-  displayName: Deploy stage
-  dependsOn: Build
-  condition: succeeded()
-
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy
-    environment: 'production'
-    pool:
-      vmImage: $(vmImageName)
-
-    strategy:
-      runOnce:
-        deploy:
-
-          steps:
-          - task: AzureWebApp@1
-            displayName: 'Azure Web App Deploy'
-            inputs:
-              connectedServiceNameARM: '$(azureSubscription)'
-              appType: 'webAppLinux'
-              appName: '$(appName)'  # Nombre del App Service
-              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'  # Paquete ZIP generado
-              runtimeStack: 'DOTNET|8.0'  # Runtime Stack para .NET 8
-              enableCustomDeployment: true
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: 'webAppLinux'
+      appName: $(appServiceName)
+      package: '$(Build.ArtifactStagingDirectory)/*'
+      resourceGroupName: $(resourceGroupName)
