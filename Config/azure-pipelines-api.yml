@@ -2,47 +2,66 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
   packagePath: '$(Build.ArtifactStagingDirectory)/publish'
+  zipFilePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 
 steps:
 - task: UseDotNet@2
+  displayName: 'Instalar .NET SDK'
   inputs:
     packageType: 'sdk'
     version: '8.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
+  displayName: 'Restaurar paquetes NuGet'
   inputs:
     command: 'restore'
     projects: '**/AzureResourceProbes.API.csproj'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Compilar el proyecto'
   inputs:
     command: 'build'
     projects: '**/AzureResourceProbes.API.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Publicar la aplicación'
   inputs:
     command: 'publish'
     projects: '**/AzureResourceProbes.API.csproj'
     arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
 
-- task: PublishBuildArtifacts@1
+# Crear un archivo .zip a partir de la publicación
+- task: ArchiveFiles@2
+  displayName: 'Crear archivo ZIP de la publicación'
   inputs:
-    pathToPublish: '$(packagePath)'
+    rootFolderOrFile: '$(packagePath)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(zipFilePath)'
+    replaceExistingArchive: true
+
+# Publicar artefactos de compilación
+- task: PublishBuildArtifacts@1
+  displayName: 'Publicar artefactos de compilación'
+  inputs:
+    pathToPublish: '$(zipFilePath)'
     artifactName: 'drop'
     publishLocation: 'Container'
 
+# Desplegar a Azure App Service
 - task: AzureWebApp@1
+  displayName: 'Desplegar aplicación en Azure App Service'
   inputs:
     azureSubscription: '$(azureSubscription)'
-    appType: 'webApp'
+    appType: 'webAppLinux'
     appName: '$(appName)'
-    package: '$(packagePath)'
+    package: '$(zipFilePath)'
     runtimeStack: 'DOTNET|8.0'
     enableCustomDeployment: true
