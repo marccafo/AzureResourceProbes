@@ -10,7 +10,6 @@ variables:
   appServiceName: 'app-arp-linux-westeu-001'
   resourceGroupName: 'rg-arp-westeu-001'
   projectName: 'AzureResourceProbes.API'
-  vmImageName: 'ubuntu-latest'
 
 steps:
   - task: UseDotNet@2

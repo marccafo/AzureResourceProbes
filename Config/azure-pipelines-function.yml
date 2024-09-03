@@ -10,7 +10,6 @@ variables:
   appServiceName: 'func-arp-linux-westeu-001'
   resourceGroupName: 'rg-arp-westeu-001'
   projectName: 'AzureResourceProbes.Function'
-  vmImageName: 'ubuntu-latest'
 
 steps:
 - task: UseDotNet@2
@@ -51,6 +50,7 @@ steps:
   displayName: 'Desplegar a Azure App Service'
   inputs:
     azureSubscription: $(azureSubscription)
+    appType: functionApp
     appName: $(appServiceName)
     package: '$(Build.ArtifactStagingDirectory)/*'
     resourceGroupName: $(resourceGroupName)
