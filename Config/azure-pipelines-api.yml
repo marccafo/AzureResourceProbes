@@ -74,7 +74,7 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy'
             inputs:
-              connectedServiceNameARM: '$(azureSubscription)'
+              azureSubscription: '$(azureSubscription)'  # ID de la suscripción
               appType: 'webAppLinux'
               appName: '$(appName)'  # Nombre del App Service
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'  # Paquete ZIP generado
