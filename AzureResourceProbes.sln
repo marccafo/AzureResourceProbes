@@ -6,7 +6,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{08CB0E1E-3EE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{E3F58F57-7E60-4E9B-9257-C289586C40EC}"
 	ProjectSection(SolutionItems) = preProject
-		Config\azure-pipeline.yml = Config\azure-pipeline.yml
 		Config\azure-pipelines-api.yml = Config\azure-pipelines-api.yml
 		Config\azure-pipelines-function.yml = Config\azure-pipelines-function.yml
 	EndProjectSection

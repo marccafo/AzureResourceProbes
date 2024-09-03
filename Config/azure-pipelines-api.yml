@@ -1,48 +1,57 @@
 trigger:
-- main
+- main # Rama principal de tu repositorio
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
-  packagePath: '$(Build.ArtifactStagingDirectory)/publish'
+  azureSubscription: 'serviceconnection-arp'
+  appServiceName: 'app-arp-linux-westeu-001'
+  resourceGroupName: 'rg-arp-westeu-001'
+  projectName: 'AzureResourceProbes.API'
+  vmImageName: 'ubuntu-latest'
 
 steps:
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '8.x'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Instalar .NET SDK 8.x'
+    inputs:
+      packageType: 'sdk'
+      version: '8.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    projects: '**/AzureResourceProbes.API.csproj'
+  - task: DotNetCoreCLI@2
+    displayName: 'Restaurar paquetes NuGet'
+    inputs:
+      command: 'restore'
+      projects: '**/$(projectName).csproj'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: '**/AzureResourceProbes.API.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    displayName: 'Compilar la aplicación'
+    inputs:
+      command: 'build'
+      projects: '**/$(projectName).csproj'
+      arguments: '--configuration $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    projects: '**/AzureResourceProbes.API.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
+  - task: DotNetCoreCLI@2
+    displayName: 'Publicar la aplicación'
+    inputs:
+      command: 'publish'
+      projects: '**/$(projectName).csproj'
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(packagePath)'
-    artifactName: 'drop'
-    publishLocation: 'Container'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publicar artefactos de compilación'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
 
-- task: AzureWebApp@1
-  inputs:
-    azureSubscription: '$(azureSubscription)'
-    appType: 'webApp'
-    appName: '$(appName)'
-    package: '$(packagePath)'
-    runtimeStack: 'DOTNET|8.0'
-    enableCustomDeployment: true
+  - task: AzureWebApp@1
+    displayName: 'Desplegar a Azure App Service'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: 'webAppLinux'
+      appName: $(appServiceName)
+      package: '$(Build.ArtifactStagingDirectory)/*'
+      resourceGroupName: $(resourceGroupName)

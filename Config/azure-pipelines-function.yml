@@ -1,47 +1,56 @@
 trigger:
-- main
+- main # Rama principal de tu repositorio
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
   buildConfiguration: 'Release'
-  packagePath: '$(Build.ArtifactStagingDirectory)/publish'
+  azureSubscription: 'serviceconnection-arp'
+  appServiceName: 'func-arp-linux-westeu-001'
+  resourceGroupName: 'rg-arp-westeu-001'
+  projectName: 'AzureResourceProbes.Function'
+  vmImageName: 'ubuntu-latest'
 
 steps:
 - task: UseDotNet@2
+  displayName: 'Instalar .NET SDK 8.x'
   inputs:
     packageType: 'sdk'
-    version: '8.x'
+    version: '8.x.x' # Asegúrate de usar la versión del SDK de .NET que necesitas
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
+  displayName: 'Restaurar paquetes NuGet'
   inputs:
     command: 'restore'
-    projects: '**/AzureResourceProbes.Function.csproj'
+    projects: '$(projectFolder)/**/*.csproj'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Compilar la aplicación'
   inputs:
     command: 'build'
-    projects: '**/AzureResourceProbes.Function.csproj'
+    projects: '$(projectFolder)/**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Publicar la aplicación'
   inputs:
     command: 'publish'
-    projects: '**/AzureResourceProbes.Function.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
+    projects: '$(projectFolder)/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publicar artefactos de compilación'
   inputs:
-    pathToPublish: '$(packagePath)'
-    artifactName: 'drop'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
     publishLocation: 'Container'
 
 - task: AzureFunctionApp@1
+  displayName: 'Desplegar a Azure App Service'
   inputs:
-    azureSubscription: '$(azureSubscription)'
-    appName: '$(appName)'
-    package: '$(packagePath)'
-    runtimeStack: 'DOTNET|8.0'
-    enableCustomDeployment: true
+    azureSubscription: $(azureSubscription)
+    appName: $(appServiceName)
+    package: '$(Build.ArtifactStagingDirectory)/*'
+    resourceGroupName: $(resourceGroupName)
